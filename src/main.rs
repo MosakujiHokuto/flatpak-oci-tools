@@ -1,8 +1,12 @@
 use clap::{Args, Parser, Subcommand};
-use log::debug;
+use indoc::formatdoc;
+use log::{debug, info};
+use tempfile::TempDir;
 use std::error::Error;
-use std::process::Command;
 use std::io;
+use std::fs;
+use std::os::unix::fs::symlink;
+use std::process::Command;
 
 mod oci;
 mod workdir;
@@ -20,7 +24,8 @@ enum Commands {
 
 #[derive(Args)]
 struct ImportContainerArgs {
-    image_file: String
+    image_file: String,
+    repo: String,
 }
 
 fn check_run(argv: &[&str]) -> io::Result<()> {
@@ -33,14 +38,16 @@ fn check_run(argv: &[&str]) -> io::Result<()> {
     let mut child = cmd.spawn().or_else(|err| {
         Err(io::Error::new(
             io::ErrorKind::Other,
-            format!("Failed to spawn command {}: {}", argv[0], err)))
+            format!("Failed to spawn command {}: {}", argv[0], err),
+        ))
     })?;
 
     let ecode = child.wait()?;
     if !ecode.success() {
         return Err(io::Error::new(
             io::ErrorKind::Other,
-            format!("Command {} exited with status {}", argv[0], ecode)));
+            format!("Command {} exited with status {}", argv[0], ecode),
+        ));
     }
 
     Ok(())
@@ -54,11 +61,72 @@ fn import_container(args: &ImportContainerArgs) -> Result<(), Box<dyn Error>> {
 
     let build_dir = work_dir.subdir("build")?;
     let image_dir = work_dir.subdir("image")?;
+    let repo_dir = work_dir.subdir("repo")?;
 
+    // XXX metadata hardcoded
+    let id = "org.openSUSE.OCIPlatform";
+    let arch = "x86_64";
+    let version = "20230829";
+
+
+    info!("Unpacking image");
     img.unpack_fs_layers(build_dir.path(), image_dir.path())?;
 
-    let _pushd = build_dir.pushd();
-    check_run(&["ls"])?;
+    info!("Initializing OSTree repo");
+    check_run(&[
+        "ostree",
+        "init",
+        "--mode=bare-user-only",
+        "--repo",
+        repo_dir.path_str().unwrap(),
+    ])?;
+
+    {
+        let _pushd = build_dir.pushd();
+
+	// prepare usr
+	info!("Preparing build root");
+	fs::create_dir_all("usr/share/fonts")?;
+	symlink("/run/host/fonts", "usr/share/fonts/flatpakhostfonts")?;
+	check_run(&["cp", "-r", "etc", "usr/etc"])?;
+    }
+
+    let base_branch = format!("base/{id}/{arch}/{version}", id=id, arch=arch, version=version);
+    let runtime_branch = format!("runtime/{id}/{arch}/{version}", id=id, arch=arch, version=version);
+
+    info!("Commiting initial build");
+    check_run(&["ostree", "commit", "--repo", repo_dir.path().as_os_str().to_str().unwrap(),
+		"-b", base_branch.as_str(),
+		format!("--tree=dir={}", build_dir.path().display()).as_str()])?;
+    {
+	info!("Commiting subtree");
+	let subtree_dir = TempDir::new_in(work_dir.path())?;
+
+	check_run(&["ostree", "checkout", "--repo", repo_dir.path_str().unwrap(),
+		    "--subpath", "/usr",
+		    "-U", base_branch.as_str(),
+		    subtree_dir.path().join("files").as_os_str().to_str().unwrap()])?;
+
+	let metadata = formatdoc!("\
+	    [Runtime]
+            name={name}
+            arch={arch}
+            version={version}", name = id, arch = arch, version = version);
+
+	fs::write(subtree_dir.path().join("metadata").as_os_str().to_str().unwrap(), metadata.as_str())?;
+
+	check_run(&["ostree", "commit", "--repo", repo_dir.path_str().unwrap(),
+		    "--no-xattrs", "--owner-uid=0", "--owner-gid=0",
+		    "--link-checkout-speedup", "-s", "Commit",
+		    "--branch", runtime_branch.as_str(),
+		    subtree_dir.path().to_str().unwrap(),
+		    "--add-metadata-string", format!("xa.metadata={}", metadata).as_str()])?;
+    }
+
+    info!("Pulling into specified repo");
+    check_run(&["ostree", "pull-local", "--repo", args.repo.as_str(),
+		repo_dir.path_str().unwrap(), runtime_branch.as_str()])?;
+    check_run(&["flatpak", "build-update-repo", "/tmp/ocirepo"])?;
 
     Ok(())
 }
@@ -69,6 +137,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match &cli.command {
-	Commands::ImportContainer(args) => import_container(args)
+        Commands::ImportContainer(args) => import_container(args),
     }
 }

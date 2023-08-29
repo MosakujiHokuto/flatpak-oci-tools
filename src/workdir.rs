@@ -56,7 +56,11 @@ impl SubDir {
     }
 
     pub fn path(&self) -> &Path {
-	&self.path.as_path()
+	self.path.as_path()
+    }
+
+    pub fn path_str(&self) -> Option<&str> {
+	self.path.to_str()
     }
 
     pub fn pushd(&self) -> io::Result<PushD> {
