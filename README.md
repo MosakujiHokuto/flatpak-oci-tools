@@ -1,5 +1,7 @@
 # flatpak-oci-tools
 
+**Still in early development, interface may change**
+
 Tools for constructing flatpak from oci images
 
 ## Build
