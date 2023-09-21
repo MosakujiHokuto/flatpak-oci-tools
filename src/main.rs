@@ -24,6 +24,14 @@ enum Commands {
 
 #[derive(Args)]
 struct ImportContainerArgs {
+    // XXX Those defaults should be derived from image
+    #[arg(long, default_value = "org.openSUSE.OCIPlatform")]
+    id: String,
+    #[arg(long, default_value = "x86_64")]
+    arch: String,
+    #[arg(long, default_value = "1")]
+    version: String,
+
     image_file: String,
     repo: String,
 }
@@ -63,11 +71,9 @@ fn import_container(args: &ImportContainerArgs) -> Result<(), Box<dyn Error>> {
     let image_dir = work_dir.subdir("image")?;
     let repo_dir = work_dir.subdir("repo")?;
 
-    // XXX metadata hardcoded
-    let id = "org.openSUSE.OCIPlatform";
-    let arch = "x86_64";
-    let version = "20230829";
-
+    let id = args.id.as_str();
+    let arch = args.arch.as_str();
+    let version = args.version.as_str();
 
     info!("Unpacking image");
     img.unpack_fs_layers(build_dir.path(), image_dir.path())?;
