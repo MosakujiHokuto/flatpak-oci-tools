@@ -36,11 +36,12 @@ impl Image {
 
         self.ar.unpack(".")?;
 
-        // XXX Assuming only single element
         let mut vm: Vec<Manifest> = serde_json::from_reader(File::open("manifest.json")?)?;
-        let m = vm
-            .pop()
-            .ok_or(io::Error::new(io::ErrorKind::Other, "Empty manifest"))?;
+	if vm.len() != 1 {
+	    panic!("Empty manifest or multiple elements");
+	}
+
+        let m = vm.pop().unwrap();
 
         for l in m.layers {
             info!("[Image] Unpacking layer {}", l);

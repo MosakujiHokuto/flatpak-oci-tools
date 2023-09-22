@@ -14,6 +14,14 @@ $ cargo build
 
 TODO: Details usage
 
+Import a container image and create a flatpak runtime from it:
+
 ```
 # flatpak-oci-tools import-container <container> <repo>
+```
+
+Fetch a container image from obs:
+
+```
+# flatpak-oci-tools fetch --username <username> --password <password> <project> <repository> <architecture> <package>
 ```
