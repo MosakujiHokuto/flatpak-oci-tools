@@ -17,6 +17,7 @@ struct Cli {
 enum Commands {
     ImportContainer(commands::import_container::Args),
     ObsFetch(commands::obs_fetch::Args),
+    Pull(commands::pull::Args),
 }
 
 fn main() -> Result<()> {
@@ -27,5 +28,6 @@ fn main() -> Result<()> {
     match &cli.command {
         Commands::ImportContainer(args) => commands::import_container::run(args),
         Commands::ObsFetch(args) => commands::obs_fetch::run(args),
+	Commands::Pull(args) => commands::pull::run(args),
     }
 }
