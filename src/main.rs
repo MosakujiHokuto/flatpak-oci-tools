@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use std::error::Error;
 
 mod commands;
+mod download;
 mod obs;
 mod oci;
 mod workdir;
@@ -17,8 +18,6 @@ enum Commands {
     ImportContainer(commands::import_container::Args),
     ObsFetch(commands::obs_fetch::Args),
 }
-
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn main() -> Result<()> {
     env_logger::init();

@@ -1,5 +1,4 @@
 use clap;
-use indicatif::ProgressBar;
 
 use crate::Result;
 use crate::obs;
@@ -54,26 +53,10 @@ pub fn run(args: &Args) -> Result<()> {
     let picked = candidates.first().unwrap();
     println!("Picked file: {}", picked.filename);
 
-    let mut pb = None;
     obsapi.download_binary(
         picked,
         args.dir.as_deref(),
         args.output.as_deref(),
-        Box::new(move |read, total| {
-            if pb.is_none() {
-                pb = Some(ProgressBar::new(total.try_into().unwrap()));
-                return;
-            }
-
-            let pb = pb.as_ref().unwrap();
-
-            if read == 0 && total == 0 {
-                pb.finish_with_message("Download finished successfully");
-                return;
-            }
-
-            pb.set_position(std::cmp::min(read, total).try_into().unwrap());
-        }),
     )?;
 
     Ok(())
