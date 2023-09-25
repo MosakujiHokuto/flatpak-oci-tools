@@ -7,6 +7,9 @@ use std::io;
 use std::path::Path;
 use tar::Archive;
 
+pub mod api;
+pub type Api = api::OciApi;
+
 pub struct Image {
     ar: Archive<File>,
 }
