@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 
 use crate::download;
+
 use super::ObsApi;
 
 // OBS API structures
@@ -76,6 +77,7 @@ where {
             pkg = bin.package,
             file = bin.filename
         );
+
         let res = self.do_get_request(&req_path).send()?;
 
         let output = output_name.unwrap_or(&bin.filename);

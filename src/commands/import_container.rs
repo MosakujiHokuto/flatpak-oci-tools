@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 use std::path::Path;
 use tempfile::TempDir;
 
-use crate::flatpak::runtime_builder;
+use crate::flatpak;
 use crate::obs;
 use crate::Result;
 
@@ -39,7 +39,7 @@ pub fn run(args: &Args) -> Result<()> {
     println!("Unpacking image");
     img.unpack(image_dir.as_path())?;
 
-    runtime_builder::run(
+    flatpak::Builder::new()?.build_runtime(
         &args.repo,
         img.layers()
             .unwrap()
