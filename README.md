@@ -23,5 +23,15 @@ Import a container image and create a flatpak runtime from it:
 Fetch a container image from obs:
 
 ```
-# flatpak-oci-tools fetch --username <username> --password <password> <project> <repository> <architecture> <package>
+# flatpak-oci-tools obs-fetch --username <username> --password <password> <project> <repository> <architecture> <package>
 ```
+
+**WIP** Pulling an image from an OCI registry:
+
+_This command is not fully implemented yet and is subject to changes_
+
+```
+# flatpak-oci-tools pull <container name>
+```
+
+Currently this commands pulls container from OBS registry [https://registry.opensuse.org/] under `home:yudaike:flatpak-oci-container` project by default. See `flatpak-oci-tools pull --help` for details.
