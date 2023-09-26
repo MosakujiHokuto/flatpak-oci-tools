@@ -35,3 +35,12 @@ _This command is not fully implemented yet and is subject to changes_
 ```
 
 Currently this commands pulls container from OBS registry [https://registry.opensuse.org/] under `home:yudaike:flatpak-oci-container` project by default. See `flatpak-oci-tools pull --help` for details.
+
+examples:
+```
+# flatpak-oci-tools pull firefox
+```
+
+```
+# flatpak-oci-tools pull gedit
+```
