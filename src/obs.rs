@@ -2,7 +2,9 @@ use quick_xml::de::from_str;
 use reqwest::blocking::Client;
 
 mod binaries;
+mod container;
 pub use binaries::*;
+pub use container::*;
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 

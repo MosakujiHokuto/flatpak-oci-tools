@@ -3,9 +3,10 @@ use std::error::Error;
 
 mod commands;
 mod download;
+mod flatpak;
 mod obs;
-mod oci;
-mod workdir;
+
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Parser)]
 struct Cli {
