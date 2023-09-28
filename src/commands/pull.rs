@@ -85,7 +85,7 @@ pub fn run(args: &Args) -> Result<()> {
     );
 
     let api = oci::Api::new(&args.registry)?;
-    let manifest = api.get_manifest(container, tag)?;
+    let manifest = api.get_manifest(&container_name, &tag)?;
 
     pull_image(&api, &container_name, &manifest)?;
 
