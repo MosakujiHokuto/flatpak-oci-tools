@@ -36,8 +36,7 @@ pub struct Builder {
 /// Run build process
 impl Builder {
     pub fn new() -> Result<Builder> {
-
-        let tmpdir = TempDir::new()?;
+        let tmpdir = TempDir::new_in("/var/tmp")?;
         let tmp_repo = Path::join(tmpdir.path(), "repo");
 
         info!("Initializing temporary repo");
